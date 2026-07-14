@@ -1,11 +1,856 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Talking Book</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talking Book – Prodhan.com</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    corePlugins: { preflight: false },
+    theme: {
+      extend: {
+        colors: {
+          border: "hsl(var(--border))",
+          foreground: "hsl(var(--foreground))",
+          primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
+          accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
+          muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" }
+        }
+      }
+    }
+  };
+</script>
+
+<style>
+  :root {
+    --foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --accent: 24.6 95% 53.1%;
+    --accent-foreground: 355.7 100% 97.3%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --border: 214.3 31.8% 91.4%;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Anek Bangla', sans-serif;
+    color: hsl(var(--foreground));
+    background: #fff;
+  }
+  a { text-decoration: none; }
+  img { max-width: 100%; display: block; }
+
+  @keyframes fadeInLeft { 0% { opacity:0; transform:translateX(-40px);} 100% { opacity:1; transform:translateX(0);} }
+  @keyframes fadeInRight { 0% { opacity:0; transform:translateX(40px);} 100% { opacity:1; transform:translateX(0);} }
+  @keyframes fadeInUp { 0% { opacity:0; transform:translateY(20px);} 100% { opacity:1; transform:translateY(0);} }
+  @keyframes bounceSlow { 0%,100% { transform:translateY(0);} 50% { transform:translateY(10px);} }
+  @keyframes pulseYellow { 0%,100% { transform:scale(1); opacity:1;} 50% { transform:scale(1.05); opacity:.9; box-shadow:0 0 15px rgba(250,204,21,.5);} }
+
+  .animate-fade-in-left { animation: fadeInLeft .8s ease-out forwards; }
+  .animate-fade-in-right { animation: fadeInRight .8s ease-out .2s forwards; opacity:0; }
+  .animate-fade-in-up { animation: fadeInUp .6s ease-out forwards; opacity:0; }
+  .animate-bounce-slow { animation: bounceSlow 2s infinite ease-in-out; }
+  .animate-pulse-subtle { animation: pulseYellow 2s infinite ease-in-out; }
+  .delay-100{animation-delay:.1s}.delay-200{animation-delay:.2s}.delay-300{animation-delay:.3s}
+  .delay-400{animation-delay:.4s}.delay-500{animation-delay:.5s}
+
+  .diagonal-strike { position: relative; display: inline-block; }
+  .diagonal-strike::after {
+    content:''; position:absolute; top:50%; left:-5%; width:110%; height:1.5px;
+    background: rgba(255,255,255,.7); transform: translateY(-50%) rotate(-12deg);
+  }
+
+  .sticky-hidden { transform: translateY(-100%); opacity:0; visibility:hidden; }
+  .sticky-visible { transform: translateY(0); opacity:1; visibility:visible; }
+
+  .custom-hero-video {
+    width:100%; max-width:420px; display:block; margin:0 auto; border-radius:1rem;
+    position:relative; z-index:10; background:#000;
+  }
+  @media (max-width:1024px){ .custom-hero-video{max-width:400px;} }
+  @media (max-width:640px){ .custom-hero-video{max-width:100%; width:100%;} }
+
+  /* ---------- CHECKOUT ---------- */
+  #checkout-wrap { font-family:'Anek Bangla', sans-serif; }
+  .ck-title { font-size:1.35rem; font-weight:800; margin:0 0 14px; color:#222; }
+
+  .ck-product-row {
+    display:flex; align-items:center; gap:12px; border:1px solid #e5e5e5; border-radius:10px;
+    padding:10px; margin-bottom:10px; background:#fff; position:relative;
+  }
+  .ck-product-row.highlight { border-color:#f16334; background:#fff8f5; }
+  .ck-highlight-badge {
+    position:absolute; top:-11px; left:14px; background:#f16334; color:#fff; font-size:11px;
+    font-weight:700; padding:2px 10px; border-radius:999px;
+  }
+  .ck-product-check { width:18px; height:18px; accent-color:#f16334; flex-shrink:0; }
+  .ck-product-img { width:64px; height:64px; object-fit:cover; border-radius:8px; flex-shrink:0; background:#f7f7f7; }
+  .ck-product-name { font-weight:700; font-size:15px; color:#222; }
+  .ck-qty-wrap { display:flex; align-items:center; border:1px solid #ddd; border-radius:8px; overflow:hidden; flex-shrink:0; }
+  .ck-qty-btn { width:30px; height:30px; border:none; background:#f5f5f5; font-size:18px; cursor:pointer; line-height:1; }
+  .ck-qty-input { width:34px; height:30px; border:none; text-align:center; font-weight:700; }
+  .ck-price-wrap { min-width:92px; text-align:right; flex-shrink:0; }
+  .ck-price-old { text-decoration:line-through; color:#999; font-size:12px; display:block; }
+  .ck-price-new { color:#e11d48; font-weight:800; font-size:15px; }
+
+  .ck-radio-option {
+    display:block; position:relative; padding:10px 10px 10px 35px; margin-bottom:8px;
+    background:#f9f9f9; border:1px solid #e0e0e0; border-radius:6px; cursor:pointer;
+    font-weight:600; font-size:16px; color:#444;
+  }
+  .ck-radio-option:hover { border-color:#007cba; background:#f4f8fb; }
+  .ck-radio-option.active { border-color:#007cba; background:#f0f7fc; color:#000; }
+  .ck-radio-option input { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; accent-color:#007cba; }
+
+  .ck-field { margin-bottom:14px; }
+  .ck-field label { display:block; font-weight:600; font-size:14px; margin-bottom:6px; color:#333; }
+  .ck-field .req { color:#e11d48; }
+  .ck-input {
+    width:100%; padding:11px 12px; border:1px solid #ccc; border-radius:6px; font-size:15px;
+    font-family:'Anek Bangla', sans-serif; background:#fff;
+  }
+  .ck-input:focus { outline:none; border-color:#007cba; box-shadow:0 0 0 3px rgba(0,124,186,.12); }
+
+  .ck-order-table { width:100%; border-collapse:collapse; font-size:14px; }
+  .ck-order-table th, .ck-order-table td { padding:10px 6px; border-bottom:1px solid #eee; text-align:left; }
+  .ck-order-table td.num, .ck-order-table th.num { text-align:right; }
+  .ck-order-table tfoot tr:last-child td, .ck-order-table tfoot tr:last-child th { border-bottom:none; font-size:17px; font-weight:800; padding-top:14px; }
+
+  .ck-place-order {
+    width:100%; margin-top:16px; padding:15px; border:none; border-radius:10px;
+    background:linear-gradient(90deg,#dc2626,#e11d48); color:#fff; font-weight:800; font-size:17px;
+    cursor:pointer; transition:transform .2s;
+  }
+  .ck-place-order:hover { transform:translateY(-2px); }
+  .ck-note { font-size:11px; color:#888; margin-top:10px; line-height:1.5; }
+</style>
 </head>
+
 <body>
-  
+
+<!-- =========================================================
+     HERO SECTION
+========================================================= -->
+<div id="custom-hero-wrapper" style="width:100%; position:relative;">
+  <section class="relative py-4 lg:py-12 flex items-center overflow-hidden bg-gradient-to-br from-primary/5 via-white to-accent/5">
+    <div class="absolute inset-0 opacity-[0.04]" style="background-image:linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px); background-size:40px 40px;"></div>
+    <div class="absolute top-20 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-3xl"></div>
+
+    <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div class="grid lg:grid-cols-2 gap-6 lg:gap-12 items-center">
+
+        <div class="order-2 lg:order-1 animate-fade-in-left text-center lg:text-left flex flex-col items-center lg:items-start">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground leading-[1.2] sm:leading-[1.3] tracking-tight m-0">
+            আপনার শিশু
+            <span class="block sm:inline -mt-2 sm:mt-0">
+              <span class="relative inline-block whitespace-nowrap mx-1">
+                <span class="inline-block bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent pt-3 pb-1 px-1">খেলার ছলেই</span>
+                <svg class="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 12" fill="none">
+                  <path d="M2 8C50 2 100 2 150 6C200 10 250 4 298 8" stroke="hsl(var(--accent))" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+              </span>
+              শিখবে পড়া
+            </span>
+          </h1>
+
+          <p class="mt-4 lg:mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0 m-0">
+            ৫২+ শিক্ষণীয় কন্টেন্ট সমৃদ্ধ ইন্টারেক্টিভ টকিং বুক — যা আপনার সোনামণিকে খেলতে খেলতে শেখাবে বাংলা, ইংরেজি, আরবি ও আরও অনেক কিছু।
+          </p>
+
+          <div class="mt-6 lg:mt-10 flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4 sm:gap-6 w-full">
+            <a href="#Checkout" class="group relative inline-flex items-center justify-center w-[90%] max-w-[320px] sm:max-w-none sm:w-auto px-10 lg:px-14 py-4 bg-gradient-to-r from-red-600 to-rose-500 text-white rounded-full text-lg lg:text-xl font-bold shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/50 transition-all duration-300 hover:-translate-y-1 hover:scale-105">
+              এখনই অর্ডার করুন
+              <span class="absolute -top-3 -right-2 px-3 py-1 bg-yellow-400 text-black text-xs font-extrabold rounded-full border-2 border-white shadow-sm animate-bounce">৪০% ছাড়</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="order-1 lg:order-2 flex justify-center animate-fade-in-right mt-6 lg:mt-0">
+          <div class="relative w-full flex justify-center items-center">
+            <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 rounded-3xl blur-3xl scale-75"></div>
+            <video
+              src="https://shop.prodhan.com/wp-content/uploads/2026/04/Smart-intelligence-book-Faceless-720.mp4"
+              autoplay loop playsinline
+              onclick="this.paused ? this.play() : this.pause()"
+              class="relative custom-hero-video cursor-pointer">
+              আপনার ব্রাউজার ভিডিও সাপোর্ট করছে না।
+            </video>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- =========================================================
+     STICKY OFFER HEADER
+========================================================= -->
+<div id="sticky-offer-header" class="fixed top-0 left-0 w-full bg-gradient-to-r from-red-600 to-rose-700 shadow-xl z-[9999] transition-all duration-300 py-2 px-3 sm:px-6 border-b border-red-500/50 sticky-hidden flex items-center justify-between">
+  <div class="flex items-center gap-3 sm:gap-6">
+    <div class="flex items-baseline gap-1.5 sm:gap-2">
+      <span class="text-sm sm:text-base text-white/70 font-semibold m-0 leading-none diagonal-strike">৳১৫০০</span>
+      <span class="text-white font-black text-lg sm:text-2xl drop-shadow-md tracking-tight leading-none">৳৮৯৯</span>
+    </div>
+    <div class="flex items-center gap-1 text-xs sm:text-sm">
+      <span class="hidden sm:inline-block text-white/90 font-medium mr-1">সময় বাকি:</span>
+      <span id="sticky-cd-hours" class="bg-white text-red-700 font-bold px-1.5 py-0.5 rounded shadow-sm">00</span>
+      <span class="text-white/60 font-black">:</span>
+      <span id="sticky-cd-minutes" class="bg-white text-red-700 font-bold px-1.5 py-0.5 rounded shadow-sm">00</span>
+      <span class="text-white/60 font-black">:</span>
+      <span id="sticky-cd-seconds" class="bg-yellow-400 text-red-800 font-bold px-1.5 py-0.5 rounded shadow-sm">00</span>
+    </div>
+  </div>
+  <a href="#Checkout" class="bg-yellow-400 hover:bg-yellow-500 text-red-900 px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-black transition-all shadow-md flex items-center gap-1.5 hover:scale-105 border-none">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="hidden sm:block"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+    অর্ডার করুন
+  </a>
+</div>
+
+<!-- =========================================================
+     MAIN OFFER / COUNTDOWN SECTION
+========================================================= -->
+<div id="custom-offer-wrapper" class="py-6 lg:py-10 bg-gradient-to-br from-red-600 to-rose-700 relative overflow-hidden">
+  <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image:radial-gradient(#ffffff 1px, transparent 1px); background-size:20px 20px;"></div>
+
+  <div class="max-w-4xl mx-auto px-4 relative z-10">
+    <div class="text-center w-full">
+      <div class="inline-block bg-yellow-400 text-red-900 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black tracking-widest uppercase mb-4 animate-bounce shadow-md">সীমিত সময়ের অফার!</div>
+
+      <h2 class="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-6 m-0 leading-tight">
+        আপনার শিশুর উজ্জ্বল ভবিষ্যতের জন্য <br class="hidden sm:block" />
+        <span class="text-yellow-400">সেরা উপহার</span> এখন ডিসকাউন্টে!
+      </h2>
+
+      <div class="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-10 mb-8">
+        <div class="flex items-baseline justify-center gap-3 sm:gap-4">
+          <span class="text-xl sm:text-2xl lg:text-3xl text-white/70 font-semibold m-0 leading-none diagonal-strike">৳১৫০০</span>
+          <span class="text-4xl sm:text-5xl lg:text-6xl font-black text-yellow-400 leading-none drop-shadow-md tracking-tighter">৳৮৯৯</span>
+        </div>
+
+        <div class="hidden lg:block w-px h-12 bg-white/20"></div>
+
+        <div class="flex items-center gap-3">
+          <span class="text-sm sm:text-base text-white/90 font-bold hidden sm:inline-block">অফার শেষ হতে বাকি:</span>
+          <div class="flex gap-2 sm:gap-3">
+            <div class="flex flex-col items-center">
+              <div class="bg-white text-red-700 w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center text-lg sm:text-2xl font-black shadow-md" id="main-cd-hours">00</div>
+              <span class="text-[11px] sm:text-xs font-bold text-white/90 mt-1.5">ঘণ্টা</span>
+            </div>
+            <div class="text-white/60 text-2xl sm:text-3xl font-black pt-1 sm:pt-2">:</div>
+            <div class="flex flex-col items-center">
+              <div class="bg-white text-red-700 w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center text-lg sm:text-2xl font-black shadow-md" id="main-cd-minutes">00</div>
+              <span class="text-[11px] sm:text-xs font-bold text-white/90 mt-1.5">মিনিট</span>
+            </div>
+            <div class="text-white/60 text-2xl sm:text-3xl font-black pt-1 sm:pt-2">:</div>
+            <div class="flex flex-col items-center">
+              <div class="bg-yellow-400 text-red-800 w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center text-lg sm:text-2xl font-black shadow-lg animate-pulse-subtle" id="main-cd-seconds">00</div>
+              <span class="text-[11px] sm:text-xs font-bold text-yellow-400 mt-1.5">সেকেন্ড</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center gap-2">
+        <a href="#Checkout" class="w-full sm:w-[320px] inline-flex justify-center items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-900 rounded-xl text-base sm:text-lg font-black transition-all duration-300 hover:scale-105 hover:brightness-110 shadow-lg border-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          অর্ডার করতে চাই
+        </a>
+        <div class="flex gap-2 w-full sm:w-[320px]">
+          <a href="https://wa.link/s1j832" target="_blank" class="flex-1 inline-flex justify-center items-center gap-1.5 px-2 py-2 bg-emerald-500 text-white rounded-lg text-xs sm:text-sm font-bold hover:bg-emerald-600 transition-all border-none shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            হোয়াটসঅ্যাপ
+          </a>
+          <a href="tel:+8809643330000" class="flex-1 inline-flex justify-center items-center gap-1.5 px-2 py-2 bg-blue-600 text-white rounded-lg text-xs sm:text-sm font-bold hover:bg-blue-700 transition-all border-none shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            কল করুন
+          </a>
+        </div>
+      </div>
+
+      <p class="mt-4 text-white/60 text-[10px] sm:text-xs italic m-0">* অফারটি স্টকের থাকা পর্যন্ত প্রযোজ্য।</p>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     CURRICULUM / GALLERY SECTION
+========================================================= -->
+<div id="custom-curriculum-wrapper" style="width:100%; position:relative;">
+  <section id="curriculum" class="relative py-4 lg:py-8 overflow-hidden bg-gradient-to-br from-primary/5 via-white to-accent/5">
+    <div class="absolute inset-0 opacity-[0.04]" style="background-image:linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px); background-size:40px 40px; pointer-events:none;"></div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative">
+      <div class="grid lg:grid-cols-2 gap-6 lg:gap-10 items-center">
+
+        <div class="relative animate-fade-in-left order-2 lg:order-1 flex justify-center mt-4 lg:mt-0">
+          <div class="relative w-full max-w-[360px] sm:max-w-[420px] lg:max-w-[480px]">
+            <div class="absolute inset-0 bg-gradient-to-br from-primary/15 to-accent/15 rounded-[2rem] blur-2xl scale-95"></div>
+            <div class="relative grid grid-cols-2 gap-3 sm:gap-4 w-full">
+              <div class="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white transition-all duration-300 flex flex-col justify-end border-b-2 border-gray-200 hover:border-primary/60 hover:-translate-y-1">
+                <div class="aspect-square w-full bg-white overflow-hidden rounded-t-xl sm:rounded-t-2xl">
+                  <img src="https://media.base44.com/images/public/user_69d37c5040cb6b4cadd94691/0e0301e1b_Product_photo_white_202604061516.jpeg" alt="ফ্রন্ট ভিউ" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" style="mix-blend-mode:multiply;">
+                </div>
+                <div class="bg-white py-2 text-center"><span class="text-[11px] sm:text-xs font-bold text-foreground tracking-wide">ফ্রন্ট ভিউ</span></div>
+              </div>
+              <div class="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white transition-all duration-300 flex flex-col justify-end border-b-2 border-gray-200 hover:border-primary/60 hover:-translate-y-1">
+                <div class="aspect-square w-full bg-white overflow-hidden rounded-t-xl sm:rounded-t-2xl">
+                  <img src="https://media.base44.com/images/public/user_69d37c5040cb6b4cadd94691/f4926cca1_Product_photo_white_2026040615201.jpeg" alt="ভেতরের পাতা" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" style="mix-blend-mode:multiply;">
+                </div>
+                <div class="bg-white py-2 text-center"><span class="text-[11px] sm:text-xs font-bold text-foreground tracking-wide">ভেতরের পাতা</span></div>
+              </div>
+              <div class="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white transition-all duration-300 flex flex-col justify-end border-b-2 border-gray-200 hover:border-primary/60 hover:-translate-y-1">
+                <div class="aspect-square w-full bg-white overflow-hidden rounded-t-xl sm:rounded-t-2xl">
+                  <img src="https://media.base44.com/images/public/user_69d37c5040cb6b4cadd94691/cc58ec8ee_Product_photo_white_202604061520.jpeg" alt="সকল পাতা" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" style="mix-blend-mode:multiply;">
+                </div>
+                <div class="bg-white py-2 text-center"><span class="text-[11px] sm:text-xs font-bold text-foreground tracking-wide">সকল পাতা</span></div>
+              </div>
+              <div class="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white transition-all duration-300 flex flex-col justify-end border-b-2 border-gray-200 hover:border-primary/60 hover:-translate-y-1">
+                <div class="aspect-square w-full bg-white overflow-hidden rounded-t-xl sm:rounded-t-2xl">
+                  <img src="https://media.base44.com/images/public/user_69d37c5040cb6b4cadd94691/3f59a8db6_Product_photo_white_2026040615203.jpeg" alt="ব্যাক ভিউ" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" style="mix-blend-mode:multiply;">
+                </div>
+                <div class="bg-white py-2 text-center"><span class="text-[11px] sm:text-xs font-bold text-foreground tracking-wide">ব্যাক ভিউ</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="animate-fade-in-right order-1 lg:order-2 text-center lg:text-left flex flex-col items-center lg:items-start w-full" style="animation-delay:.2s;">
+          <h2 class="text-xl sm:text-2xl lg:text-3xl font-black mt-0 leading-tight m-0 inline-block bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent pt-3 pb-1 px-1">শিশুরা যা শিখতে পারবে</h2>
+          <p class="mt-1 text-sm text-muted-foreground max-w-xl mx-auto lg:mx-0 m-0 leading-relaxed mb-4">৫২+ বিষয়ে সমৃদ্ধ এই বইটিতে রয়েছে —</p>
+
+          <div class="grid grid-cols-2 gap-2 w-full">
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.3s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">🇧🇩</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">বাংলা স্বরবর্ণ ও ব্যঞ্জনবর্ণ</span></div>
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.35s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">🔤</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">ইংরেজি Alphabet</span></div>
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.4s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">📖</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">আরবি বর্ণমালা</span></div>
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.45s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">🔢</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">বাংলা ও ইংরেজি সংখ্যা</span></div>
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.5s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">🎵</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">বাংলা-ইংরেজি-আরবি ছড়া</span></div>
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.55s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">🎶</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">ইসলামিক গান ও গজল</span></div>
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.6s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">☪️</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">কুরআনের ১৫ সূরা</span></div>
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.65s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">🐾</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">পশুপাখির নাম</span></div>
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.7s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">🍎</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">ফলমূল ও সবজির নাম</span></div>
+            <div class="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-gray-200 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay:.75s;"><span class="text-xl sm:text-2xl leading-none flex-shrink-0">🧠</span><span class="text-[11px] sm:text-sm font-bold text-foreground m-0 leading-tight">মানবদেহ পরিচিতি</span></div>
+          </div>
+
+          <div class="mt-5 flex flex-col items-center lg:items-start w-full animate-fade-in-up" style="animation-delay:.8s;">
+            <a href="#Checkout" class="w-full sm:w-[320px] inline-flex justify-center items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-500 text-white rounded-lg text-base sm:text-lg font-bold transition-all duration-300 hover:scale-105 hover:brightness-110 border-none">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              অর্ডার করতে চাই
+            </a>
+            <div class="flex gap-2 w-full sm:w-[320px] mt-2">
+              <a href="https://wa.link/s1j832" target="_blank" class="flex-1 inline-flex justify-center items-center gap-1 px-2 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 hover:brightness-110 border-none">হোয়াটসঅ্যাপ</a>
+              <a href="tel:+8809643330000" class="flex-1 inline-flex justify-center items-center gap-1 px-2 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 hover:brightness-110 border-none">কল করুন</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- =========================================================
+     FEATURES SECTION
+========================================================= -->
+<div id="custom-features-wrapper" style="width:100%; position:relative;">
+  <section id="features" class="relative py-6 lg:py-10 overflow-hidden bg-gradient-to-br from-primary/5 via-white to-accent/5">
+    <div class="absolute inset-0 opacity-[0.04]" style="background-image:linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px); background-size:40px 40px; pointer-events:none;"></div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div class="text-center mb-8 lg:mb-10 animate-fade-in-up">
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black mt-2 leading-tight m-0 inline-block bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent pt-3 pb-2 px-1">কেন এই টকিং বুকটি সেরা?</h2>
+        <p class="mt-2 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed m-0">একটি বই নয়, একটি সম্পূর্ণ ডিজিটাল লার্নিং টুল — যা আপনার শিশুকে খেলতে খেলতে শেখাবে।</p>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
+
+        <div class="group relative animate-fade-in-up">
+          <div class="h-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-gray-200 hover:border-primary/50 transition-all duration-300 flex flex-col items-center text-center hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-all duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 sm:w-[26px] sm:h-[26px] text-primary"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-foreground mb-1.5 sm:mb-2 m-0 leading-snug">৫২+ শিক্ষণীয় কন্টেন্ট</h3>
+            <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed m-0">বাংলা, ইংরেজি, আরবি বর্ণমালা থেকে শুরু করে পশুপাখি, ফলমূল, মানবদেহ — সব এক বইয়ে।</p>
+          </div>
+        </div>
+
+        <div class="group relative animate-fade-in-up delay-100">
+          <div class="h-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-gray-200 hover:border-accent/50 transition-all duration-300 flex flex-col items-center text-center hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-accent/10 to-accent/5 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-all duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 sm:w-[26px] sm:h-[26px] text-accent"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-foreground mb-1.5 sm:mb-2 m-0 leading-snug">ডুয়েল ভয়েস টেকনোলজি</h3>
+            <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed m-0">ছেলে ও মেয়েদের আলাদা আলাদা স্পষ্ট উচ্চারণে Phonetic Learning — সহজেই সঠিক উচ্চারণ শিখবে।</p>
+          </div>
+        </div>
+
+        <div class="group relative animate-fade-in-up delay-200">
+          <div class="h-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-gray-200 hover:border-green-500/50 transition-all duration-300 flex flex-col items-center text-center hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-green-500/10 to-green-500/5 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-all duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 sm:w-[26px] sm:h-[26px] text-green-600"><path d="M5 18H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3.19M15 6h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-3.19"></path><line x1="23" y1="13" x2="23" y2="11"></line><polyline points="11 6 7 12 13 12 9 18"></polyline></svg>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-foreground mb-1.5 sm:mb-2 m-0 leading-snug">রিচার্জেবল ব্যাটারি</h3>
+            <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed m-0">দীর্ঘস্থায়ী লিথিয়াম পলিমার ব্যাটারি — বারবার ব্যাটারি বদলের ঝামেলা নেই।</p>
+          </div>
+        </div>
+
+        <div class="group relative animate-fade-in-up delay-300">
+          <div class="h-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-gray-200 hover:border-purple-500/50 transition-all duration-300 flex flex-col items-center text-center hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-purple-500/10 to-purple-500/5 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-all duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 sm:w-[26px] sm:h-[26px] text-purple-600"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-foreground mb-1.5 sm:mb-2 m-0 leading-snug">ম্যাজিক রাইটিং বোর্ড</h3>
+            <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed m-0">বিশেষ ডট পেজে ইরেজারযুক্ত মার্কার পেন দিয়ে বারবার লিখুন ও মুছুন।</p>
+          </div>
+        </div>
+
+        <div class="group relative animate-fade-in-up delay-400">
+          <div class="h-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-gray-200 hover:border-rose-500/50 transition-all duration-300 flex flex-col items-center text-center hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-rose-500/10 to-rose-500/5 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-all duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 sm:w-[26px] sm:h-[26px] text-rose-600"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-foreground mb-1.5 sm:mb-2 m-0 leading-snug">ইন্টারেক্টিভ কুইজ গেম</h3>
+            <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed m-0">বিভিন্ন অ্যাক্টিভিটি ও কুইজ গেম — চিন্তাশক্তি ও পর্যবেক্ষণ ক্ষমতা বাড়াতে দারুণ কার্যকর।</p>
+          </div>
+        </div>
+
+        <div class="group relative animate-fade-in-up delay-500">
+          <div class="h-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-gray-200 hover:border-sky-500/50 transition-all duration-300 flex flex-col items-center text-center hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-sky-500/10 to-sky-500/5 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-all duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 sm:w-[26px] sm:h-[26px] text-sky-600"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold text-foreground mb-1.5 sm:mb-2 m-0 leading-snug">তিন ভাষায় শিক্ষা</h3>
+            <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed m-0">বাংলা, ইংরেজি ও আরবি — তিন ভাষায় বর্ণমালা, সংখ্যা, ছড়া ও গান।</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="mt-8 lg:mt-12 flex flex-col items-center justify-center animate-fade-in-up delay-300">
+        <a href="#Checkout" class="w-full sm:w-[360px] inline-flex justify-center items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-red-600 to-rose-500 text-white rounded-lg text-lg sm:text-xl font-bold transition-all duration-300 hover:scale-105 hover:brightness-110 border-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          অর্ডার করতে চাই
+        </a>
+        <div class="flex gap-3 w-full sm:w-[360px] mt-3">
+          <a href="https://wa.link/s1j832" target="_blank" class="flex-1 inline-flex justify-center items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-sm sm:text-base font-bold transition-all duration-300 hover:scale-105 hover:brightness-110 border-none">হোয়াটসঅ্যাপ</a>
+          <a href="tel:+8809643330000" class="flex-1 inline-flex justify-center items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-lg text-sm sm:text-base font-bold transition-all duration-300 hover:scale-105 hover:brightness-110 border-none">কল করুন</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- =========================================================
+     PACKAGE / BOX CONTENTS SECTION
+========================================================= -->
+<div id="custom-package-wrapper" style="width:100%; position:relative;">
+  <section id="package" class="relative py-6 lg:py-12 overflow-hidden bg-gradient-to-br from-primary/5 via-white to-accent/5">
+    <div class="absolute inset-0 opacity-[0.04]" style="background-image:linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px); background-size:40px 40px; pointer-events:none;"></div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative">
+      <div class="text-center mb-8 sm:mb-14 animate-fade-in-up">
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black mt-0 leading-tight m-0 inline-block bg-gradient-to-r from-red-600 to-rose-500 bg-clip-text text-transparent pt-3 pb-1 px-1">বক্সের ভেতর যা যা পাচ্ছেন</h2>
+        <p class="mt-1 sm:mt-2 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto m-0 leading-relaxed">একটি সম্পূর্ণ ডিজিটাল লার্নিং প্যাকেজ, যা আপনার শিশুর শেখাকে করবে আরও সহজ ও মজাদার।</p>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 justify-center max-w-6xl mx-auto">
+
+        <div class="group relative overflow-hidden rounded-2xl sm:rounded-[2rem] bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 flex flex-col animate-fade-in-up" style="animation-delay:.1s;">
+          <div class="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-blue-600 text-white px-3 py-0.5 sm:px-4 sm:py-1 rounded-full text-[10px] sm:text-xs font-extrabold tracking-widest whitespace-nowrap z-10 shadow-md">মূল আকর্ষণ</div>
+          <div class="w-full aspect-square bg-white flex items-center justify-center">
+            <img src="https://media.base44.com/images/public/user_69d37c5040cb6b4cadd94691/0e0301e1b_Product_photo_white_202604061516.jpeg" alt="অরিজিনাল শিক্ষাকোষ ইন্টেলিজেন্স টকিং বুক" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" style="mix-blend-mode:multiply;">
+          </div>
+          <div class="bg-white p-2.5 sm:p-5 flex items-center justify-center gap-1 sm:gap-2 border-t border-gray-50 flex-grow">
+            <h3 class="text-foreground font-bold text-[11px] sm:text-sm leading-snug m-0 text-center">অরিজিনাল শিক্ষাকোষ টকিং বুক</h3>
+          </div>
+        </div>
+
+        <div class="group relative overflow-hidden rounded-2xl sm:rounded-[2rem] bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 flex flex-col animate-fade-in-up" style="animation-delay:.2s;">
+          <div class="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-0.5 sm:px-4 sm:py-1 rounded-full text-[10px] sm:text-xs font-extrabold tracking-widest whitespace-nowrap z-10 shadow-md">ফ্রি উপহার</div>
+          <div class="w-full aspect-square bg-white flex items-center justify-center">
+            <img src="https://media.base44.com/images/public/user_69d37c5040cb6b4cadd94691/af6b2f670_Product_photo_white_2026040417461.jpeg" alt="USB চার্জিং ক্যাবল" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" style="mix-blend-mode:multiply;">
+          </div>
+          <div class="bg-white p-2.5 sm:p-5 flex items-center justify-center gap-1 sm:gap-2 border-t border-gray-50 flex-grow">
+            <h3 class="text-foreground font-bold text-[11px] sm:text-sm leading-snug m-0 text-center">USB চার্জিং ক্যাবল</h3>
+          </div>
+        </div>
+
+        <div class="group relative overflow-hidden rounded-2xl sm:rounded-[2rem] bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 flex flex-col animate-fade-in-up" style="animation-delay:.3s;">
+          <div class="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-0.5 sm:px-4 sm:py-1 rounded-full text-[10px] sm:text-xs font-extrabold tracking-widest whitespace-nowrap z-10 shadow-md">ফ্রি উপহার</div>
+          <div class="w-full aspect-square bg-white flex items-center justify-center">
+            <img src="https://media.base44.com/images/public/user_69d37c5040cb6b4cadd94691/f3f1ee120_Product_photo_white_2026040615202.jpeg" alt="স্পেশাল হোয়াইটবোর্ড মার্কার" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" style="mix-blend-mode:multiply;">
+          </div>
+          <div class="bg-white p-2.5 sm:p-5 flex items-center justify-center gap-1 sm:gap-2 border-t border-gray-50 flex-grow">
+            <h3 class="text-foreground font-bold text-[11px] sm:text-sm leading-snug m-0 text-center">স্পেশাল মার্কার <span class="text-muted-foreground font-normal whitespace-nowrap hidden sm:inline-block">(ইরেজার সহ)</span></h3>
+          </div>
+        </div>
+
+        <div class="group relative overflow-hidden rounded-2xl sm:rounded-[2rem] bg-gradient-to-br from-rose-50 to-red-50 border border-red-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 flex flex-col items-center justify-center p-3 sm:p-5 animate-fade-in-up" style="animation-delay:.4s;">
+          <div class="text-red-500 mb-2 sm:mb-3 animate-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <h3 class="text-red-600 font-extrabold text-[12px] sm:text-base leading-snug m-0 text-center mb-3 sm:mb-4">৪০% ছাড়ের অফারটি শেষ হবে</h3>
+          <div class="flex gap-1.5 sm:gap-2 text-center w-full justify-center">
+            <div class="flex flex-col items-center">
+              <div class="bg-white border border-red-200 text-red-600 font-black text-base sm:text-xl rounded-lg w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-sm" id="pkg-cd-hours">00</div>
+              <span class="text-[10px] sm:text-xs text-red-500/80 font-medium mt-1">ঘণ্টা</span>
+            </div>
+            <div class="text-red-400 font-black text-xl mt-1">:</div>
+            <div class="flex flex-col items-center">
+              <div class="bg-white border border-red-200 text-red-600 font-black text-base sm:text-xl rounded-lg w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-sm" id="pkg-cd-minutes">00</div>
+              <span class="text-[10px] sm:text-xs text-red-500/80 font-medium mt-1">মিনিট</span>
+            </div>
+            <div class="text-red-400 font-black text-xl mt-1">:</div>
+            <div class="flex flex-col items-center">
+              <div class="bg-white border border-red-200 text-red-600 font-black text-base sm:text-xl rounded-lg w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-sm" id="pkg-cd-seconds">00</div>
+              <span class="text-[10px] sm:text-xs text-red-500/80 font-medium mt-1">সেকেন্ড</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="mt-8 sm:mt-12 flex flex-col items-center justify-center w-full animate-fade-in-up" style="animation-delay:.5s;">
+        <a href="#Checkout" class="w-full sm:w-[320px] inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-red-600 to-rose-500 text-white rounded-lg text-base sm:text-lg font-bold transition-all duration-300 hover:scale-105 hover:brightness-110 border-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          অর্ডার করতে চাই
+        </a>
+        <div class="flex gap-2 w-full sm:w-[320px] mt-2">
+          <a href="https://wa.link/s1j832" target="_blank" class="flex-1 inline-flex justify-center items-center gap-1 px-2 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 hover:brightness-110 border-none">হোয়াটসঅ্যাপ</a>
+          <a href="tel:+8809643330000" class="flex-1 inline-flex justify-center items-center gap-1 px-2 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 hover:scale-105 hover:brightness-110 border-none">কল করুন</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- =========================================================
+     CHECKOUT SECTION
+========================================================= -->
+<div id="OrderForm" class="py-8 lg:py-12 bg-gray-50" style="width:100%;">
+  <div id="Checkout" class="max-w-5xl mx-auto px-4">
+    <div id="checkout-wrap">
+
+      <!-- Product selection -->
+      <div class="ck-title">Your Products</div>
+      <div id="ck-products"></div>
+
+      <div class="grid lg:grid-cols-2 gap-6 mt-8">
+
+        <!-- Left column: customer details -->
+        <div>
+          <div class="ck-title">অর্ডার করতে ফর্মটি পূরণ করতে হবে</div>
+
+          <div style="margin-bottom:18px;">
+            <div style="font-weight:800; font-size:16px; margin-bottom:10px; border-bottom:1px solid #f1f1f1; padding-bottom:8px;">ডেলিভারি এলাকা নির্বাচন করুন</div>
+            <label class="ck-radio-option active" id="loc-inside-label">
+              <input type="radio" name="shipping_location_choice" value="inside_dhaka" checked id="loc-inside">
+              ঢাকার ভিতরে
+            </label>
+            <label class="ck-radio-option" id="loc-outside-label">
+              <input type="radio" name="shipping_location_choice" value="outside_dhaka" id="loc-outside">
+              ঢাকার বাহিরে
+            </label>
+          </div>
+
+          <div class="ck-field">
+            <label for="billing_first_name">আপনার নাম লিখুন <span class="req">*</span></label>
+            <input type="text" id="billing_first_name" class="ck-input" required>
+          </div>
+          <div class="ck-field">
+            <label for="billing_phone">আপনার ফোন নাম্বারটি লিখুন <span class="req">*</span></label>
+            <input type="tel" id="billing_phone" class="ck-input" required>
+          </div>
+          <div class="ck-field">
+            <label for="billing_address_1">আপনার সম্পূর্ণ এড্রেস টি লিখুন <span class="req">*</span></label>
+            <input type="text" id="billing_address_1" class="ck-input" required>
+          </div>
+        </div>
+
+        <!-- Right column: order summary -->
+        <div>
+          <div class="ck-title">Your order</div>
+          <table class="ck-order-table">
+            <thead>
+              <tr><th>Product</th><th class="num">Subtotal</th></tr>
+            </thead>
+            <tbody id="ck-order-items"></tbody>
+            <tfoot>
+              <tr><th>Subtotal</th><td class="num" id="ck-subtotal">৳0</td></tr>
+              <tr><th>Shipment</th><td class="num" id="ck-shipping">৳60</td></tr>
+              <tr><th>Total</th><td class="num" id="ck-total">৳0</td></tr>
+            </tfoot>
+          </table>
+
+          <div style="margin-top:16px; padding:12px 14px; border:1px solid #e5e5e5; border-radius:8px; background:#fff;">
+            <label style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px;">
+              <input type="radio" checked disabled style="accent-color:#f16334;"> Cash on delivery
+            </label>
+            <p style="font-size:12px; color:#888; margin:6px 0 0;">Pay with cash upon delivery.</p>
+          </div>
+
+          <button type="button" class="ck-place-order" id="ck-place-order-btn">অর্ডার করুন&nbsp;&nbsp;<span id="ck-btn-total">৳0</span></button>
+
+          <p class="ck-note">
+            Your personal data will be used to process your order and support your experience on this website.<br>
+            <!-- TODO: Replace with real WooCommerce / backend integration.
+                 On submit this currently only validates fields and shows a confirmation.
+                 Wire this button to your checkout/order-creation endpoint. -->
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  /* ---------------- Countdown timers ---------------- */
+  function startMainCountdown() {
+    const resetInterval = 2 * 60 * 60 * 1000;
+    const now = new Date().getTime();
+    let startTime = localStorage.getItem('offerMainStartTime');
+    let endTime = localStorage.getItem('offerMainEndTime');
+
+    if (!startTime || !endTime || (now - parseInt(startTime)) > resetInterval) {
+      startTime = now;
+      const randomMinutes = Math.floor(Math.random() * (30 - 15 + 1)) + 15;
+      endTime = now + (randomMinutes * 60 * 1000);
+      localStorage.setItem('offerMainStartTime', startTime);
+      localStorage.setItem('offerMainEndTime', endTime);
+    } else {
+      startTime = parseInt(startTime);
+      endTime = parseInt(endTime);
+    }
+
+    function updateTimer() {
+      const currentTime = new Date().getTime();
+      if ((currentTime - startTime) > resetInterval) {
+        startTime = currentTime;
+        const randomMinutes = Math.floor(Math.random() * (30 - 15 + 1)) + 15;
+        endTime = currentTime + (randomMinutes * 60 * 1000);
+        localStorage.setItem('offerMainStartTime', startTime);
+        localStorage.setItem('offerMainEndTime', endTime);
+      }
+      const distance = endTime - currentTime;
+      const h = Math.max(0, Math.floor((distance % (1000*60*60*24)) / (1000*60*60)));
+      const m = Math.max(0, Math.floor((distance % (1000*60*60)) / (1000*60)));
+      const s = Math.max(0, Math.floor((distance % (1000*60)) / 1000));
+      const hh = h.toString().padStart(2,'0'), mm = m.toString().padStart(2,'0'), ss = s.toString().padStart(2,'0');
+      ['main-cd-hours','sticky-cd-hours'].forEach(id => { const el=document.getElementById(id); if(el) el.innerText = hh; });
+      ['main-cd-minutes','sticky-cd-minutes'].forEach(id => { const el=document.getElementById(id); if(el) el.innerText = mm; });
+      ['main-cd-seconds','sticky-cd-seconds'].forEach(id => { const el=document.getElementById(id); if(el) el.innerText = ss; });
+    }
+    setInterval(updateTimer, 1000);
+    updateTimer();
+  }
+
+  function startPackageCountdown() {
+    let endTime = localStorage.getItem('packageOfferEndTime');
+    if (!endTime || new Date().getTime() > endTime) {
+      const hoursToAdd = Math.floor(Math.random() * 3) + 5;
+      const minsToAdd = Math.floor(Math.random() * 60);
+      endTime = new Date().getTime() + (hoursToAdd * 60 * 60 * 1000) + (minsToAdd * 60 * 1000);
+      localStorage.setItem('packageOfferEndTime', endTime);
+    }
+    function updateTimer() {
+      const now = new Date().getTime();
+      const distance = endTime - now;
+      const h = Math.max(0, Math.floor((distance % (1000*60*60*24)) / (1000*60*60)));
+      const m = Math.max(0, Math.floor((distance % (1000*60*60)) / (1000*60)));
+      const s = Math.max(0, Math.floor((distance % (1000*60)) / 1000));
+      document.getElementById('pkg-cd-hours').innerText = h.toString().padStart(2,'0');
+      document.getElementById('pkg-cd-minutes').innerText = m.toString().padStart(2,'0');
+      document.getElementById('pkg-cd-seconds').innerText = s.toString().padStart(2,'0');
+    }
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  }
+
+  function handleStickyHeader() {
+    const offerSection = document.getElementById('custom-offer-wrapper');
+    const stickyHeader = document.getElementById('sticky-offer-header');
+    if (!offerSection || !stickyHeader) return;
+    window.addEventListener('scroll', () => {
+      const rect = offerSection.getBoundingClientRect();
+      if (rect.bottom < 0) {
+        stickyHeader.classList.remove('sticky-hidden');
+        stickyHeader.classList.add('sticky-visible');
+      } else {
+        stickyHeader.classList.add('sticky-hidden');
+        stickyHeader.classList.remove('sticky-visible');
+      }
+    });
+  }
+
+  /* ---------------- Checkout: products, qty, order summary ---------------- */
+  // TODO: replace static product data with a live fetch from your WooCommerce/product API.
+  const PRODUCTS = [
+    {
+      id: 12919,
+      name: 'Intelligence Talking Book',
+      img: 'https://shop.prodhan.com/wp-content/uploads/2026/04/Talking-book-For-hero-section-300x300.png',
+      original: 1500,
+      price: 899,
+      qty: 1,
+      checked: true,
+      highlight: false
+    },
+    {
+      id: 12464,
+      name: 'Talking Flash Card',
+      img: 'https://shop.prodhan.com/wp-content/uploads/2026/04/Product_photo_white_202604041744-300x300.jpeg',
+      original: 1300,
+      price: 799,
+      qty: 1,
+      checked: false,
+      highlight: true,
+      highlightText: 'বেস্ট রিকমেন্ডেড প্রোডাক্ট'
+    }
+  ];
+
+  const SHIPPING = { inside_dhaka: 60, outside_dhaka: 120 }; // TODO: confirm outside-Dhaka rate with backend
+  let currentLocation = 'inside_dhaka';
+
+  function fmt(n){ return '৳' + n.toLocaleString('en-US'); }
+
+  function renderProducts() {
+    const wrap = document.getElementById('ck-products');
+    wrap.innerHTML = PRODUCTS.map((p, idx) => `
+      <div class="ck-product-row ${p.highlight ? 'highlight' : ''}">
+        ${p.highlight ? `<span class="ck-highlight-badge">${p.highlightText}</span>` : ''}
+        <input type="checkbox" class="ck-product-check" data-idx="${idx}" ${p.checked ? 'checked' : ''}>
+        <img src="${p.img}" alt="${p.name}" class="ck-product-img">
+        <div style="flex:1;">
+          <div class="ck-product-name">${p.name}</div>
+        </div>
+        <div class="ck-qty-wrap">
+          <button type="button" class="ck-qty-btn" data-act="dec" data-idx="${idx}">&minus;</button>
+          <input type="number" class="ck-qty-input" value="${p.qty}" min="1" data-idx="${idx}">
+          <button type="button" class="ck-qty-btn" data-act="inc" data-idx="${idx}">&plus;</button>
+        </div>
+        <div class="ck-price-wrap">
+          <span class="ck-price-old">${fmt(p.original)}</span>
+          <span class="ck-price-new">${fmt(p.price)}</span>
+        </div>
+      </div>
+    `).join('');
+
+    wrap.querySelectorAll('.ck-product-check').forEach(cb => {
+      cb.addEventListener('change', e => {
+        PRODUCTS[+e.target.dataset.idx].checked = e.target.checked;
+        renderOrderSummary();
+      });
+    });
+    wrap.querySelectorAll('.ck-qty-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const idx = +e.currentTarget.dataset.idx;
+        const act = e.currentTarget.dataset.act;
+        PRODUCTS[idx].qty = Math.max(1, PRODUCTS[idx].qty + (act === 'inc' ? 1 : -1));
+        renderProducts();
+        renderOrderSummary();
+      });
+    });
+    wrap.querySelectorAll('.ck-qty-input').forEach(inp => {
+      inp.addEventListener('change', e => {
+        const idx = +e.target.dataset.idx;
+        const val = Math.max(1, parseInt(e.target.value) || 1);
+        PRODUCTS[idx].qty = val;
+        renderOrderSummary();
+      });
+    });
+  }
+
+  function renderOrderSummary() {
+    const itemsEl = document.getElementById('ck-order-items');
+    const selected = PRODUCTS.filter(p => p.checked);
+    itemsEl.innerHTML = selected.map(p => `
+      <tr>
+        <td>${p.name} &nbsp;<strong>&times; ${p.qty}</strong></td>
+        <td class="num">${fmt(p.price * p.qty)}</td>
+      </tr>
+    `).join('') || `<tr><td colspan="2" style="color:#999;">কোনো প্রোডাক্ট নির্বাচিত নেই</td></tr>`;
+
+    const subtotal = selected.reduce((sum, p) => sum + p.price * p.qty, 0);
+    const shipping = SHIPPING[currentLocation];
+    const total = subtotal + (selected.length ? shipping : 0);
+
+    document.getElementById('ck-subtotal').innerText = fmt(subtotal);
+    document.getElementById('ck-shipping').innerText = fmt(selected.length ? shipping : 0);
+    document.getElementById('ck-total').innerText = fmt(total);
+    document.getElementById('ck-btn-total').innerText = fmt(total);
+  }
+
+  function initLocationToggle() {
+    const insideRadio = document.getElementById('loc-inside');
+    const outsideRadio = document.getElementById('loc-outside');
+    const insideLabel = document.getElementById('loc-inside-label');
+    const outsideLabel = document.getElementById('loc-outside-label');
+
+    function apply() {
+      currentLocation = insideRadio.checked ? 'inside_dhaka' : 'outside_dhaka';
+      insideLabel.classList.toggle('active', insideRadio.checked);
+      outsideLabel.classList.toggle('active', outsideRadio.checked);
+      renderOrderSummary();
+    }
+    insideRadio.addEventListener('change', apply);
+    outsideRadio.addEventListener('change', apply);
+  }
+
+  function initPlaceOrder() {
+    document.getElementById('ck-place-order-btn').addEventListener('click', function () {
+      const name = document.getElementById('billing_first_name').value.trim();
+      const phone = document.getElementById('billing_phone').value.trim();
+      const address = document.getElementById('billing_address_1').value.trim();
+      const selected = PRODUCTS.filter(p => p.checked);
+
+      if (!name || !phone || !address) {
+        alert('অনুগ্রহ করে নাম, ফোন নম্বর এবং সম্পূর্ণ এড্রেস পূরণ করুন।');
+        return;
+      }
+      if (!selected.length) {
+        alert('অনুগ্রহ করে অন্তত একটি প্রোডাক্ট নির্বাচন করুন।');
+        return;
+      }
+
+      // TODO: Replace this stub with a real POST request to your WooCommerce / order API.
+      // Example payload shape:
+      const orderPayload = {
+        customer: { name, phone, address, location: currentLocation },
+        items: selected.map(p => ({ id: p.id, name: p.name, qty: p.qty, price: p.price })),
+        shipping: SHIPPING[currentLocation],
+        payment_method: 'cod'
+      };
+      console.log('Order payload (stub):', orderPayload);
+      alert('অর্ডারটি প্রস্তুত হয়েছে (ডেমো)। ব্যাকএন্ড ইন্টিগ্রেশনের পর এটি সরাসরি সাবমিট হবে।');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    startMainCountdown();
+    startPackageCountdown();
+    handleStickyHeader();
+    renderProducts();
+    initLocationToggle();
+    renderOrderSummary();
+    initPlaceOrder();
+  });
+
+})();
+</script>
+
 </body>
 </html>
