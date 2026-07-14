@@ -2870,34 +2870,67 @@
 
         function renderProducts() {
           const wrap = document.getElementById("ck-products");
+          //       wrap.innerHTML = PRODUCTS.map(
+          //         (p, idx) => `
+          //   <div class="ck-product-row ${p.highlight ? "highlight" : ""}">
+          //     ${p.highlight ? `<span class="ck-highlight-badge">${p.highlightText}</span>` : ""}
+          //     <input type="checkbox" class="ck-product-check" data-idx="${idx}" ${p.checked ? "checked" : ""}>
+          //     <img src="${p.img}" alt="${p.name}" class="ck-product-img">
+          //     <div style="flex:1;">
+          //       <div class="ck-product-name">${p.name}</div>
+          //     </div>
+          //     <div class="ck-qty-wrap">
+          //       <button type="button" class="ck-qty-btn" data-act="dec" data-idx="${idx}">&minus;</button>
+          //       <input type="text" class="ck-qty-input" value="${p.qty}" min="1" data-idx="${idx}">
+          //       <button type="button" class="ck-qty-btn" data-act="inc" data-idx="${idx}">&plus;</button>
+          //     </div>
+          //     <div class="ck-price-wrap">
+          //       <span class="ck-price-old">${fmt(p.original)}</span>
+          //       <span class="ck-price-new">${fmt(p.price)}</span>
+          //     </div>
+          //   </div>
+          // `,
+          //       ).join("");
+
           wrap.innerHTML = PRODUCTS.map(
             (p, idx) => `
-      <div class="ck-product-row ${p.highlight ? "highlight" : ""}">
-        ${p.highlight ? `<span class="ck-highlight-badge">${p.highlightText}</span>` : ""}
-        <input type="checkbox" class="ck-product-check" data-idx="${idx}" ${p.checked ? "checked" : ""}>
-        <img src="${p.img}" alt="${p.name}" class="ck-product-img">
-        <div style="flex:1;">
-          <div class="ck-product-name">${p.name}</div>
-        </div>
-        <div class="ck-qty-wrap">
-          <button type="button" class="ck-qty-btn" data-act="dec" data-idx="${idx}">&minus;</button>
-          <input type="number" class="ck-qty-input" value="${p.qty}" min="1" data-idx="${idx}">
-          <button type="button" class="ck-qty-btn" data-act="inc" data-idx="${idx}">&plus;</button>
-        </div>
-        <div class="ck-price-wrap">
-          <span class="ck-price-old">${fmt(p.original)}</span>
-          <span class="ck-price-new">${fmt(p.price)}</span>
-        </div>
-      </div>
-    `,
+  <div class="ck-product-row ${p.checked ? "highlight" : ""}">
+    ${p.highlight ? `<span class="ck-highlight-badge">${p.highlightText}</span>` : ""}
+    <input type="checkbox" class="ck-product-check" data-idx="${idx}" ${p.checked ? "checked" : ""}>
+    <img src="${p.img}" alt="${p.name}" class="ck-product-img">
+    <div style="flex:1;">
+      <div class="ck-product-name">${p.name}</div>
+    </div>
+    <div class="ck-qty-wrap">
+      <button type="button" class="ck-qty-btn" data-act="dec" data-idx="${idx}">&minus;</button>
+      <input type="text" class="ck-qty-input" value="${p.qty}" min="1" data-idx="${idx}">
+      <button type="button" class="ck-qty-btn" data-act="inc" data-idx="${idx}">&plus;</button>
+    </div>
+    <div class="ck-price-wrap">
+      <span class="ck-price-old">${fmt(p.original)}</span>
+      <span class="ck-price-new">${fmt(p.price)}</span>
+    </div>
+  </div>
+`,
           ).join("");
+
+          // wrap.querySelectorAll(".ck-product-check").forEach((cb) => {
+          //   cb.addEventListener("change", (e) => {
+          //     PRODUCTS[+e.target.dataset.idx].checked = e.target.checked;
+          //     renderOrderSummary();
+          //   });
+          // });
 
           wrap.querySelectorAll(".ck-product-check").forEach((cb) => {
             cb.addEventListener("change", (e) => {
-              PRODUCTS[+e.target.dataset.idx].checked = e.target.checked;
+              const idx = +e.target.dataset.idx;
+              PRODUCTS[idx].checked = e.target.checked;
+              const row = e.target.closest(".ck-product-row");
+              row.classList.toggle("highlight", e.target.checked);
               renderOrderSummary();
             });
           });
+
           wrap.querySelectorAll(".ck-qty-btn").forEach((btn) => {
             btn.addEventListener("click", (e) => {
               const idx = +e.currentTarget.dataset.idx;
