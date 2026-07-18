@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="bn">
   <head>
@@ -368,6 +369,8 @@
 
       .ck-radio-option {
         display: block;
+        /* align-items: center;
+        justify-content: center; */
         position: relative;
         padding: 10px 10px 10px 35px;
         margin-bottom: 8px;
@@ -393,9 +396,9 @@
         left: 10px;
         top: 50%;
         transform: translateY(-50%);
-        width: 16px;
-        height: 16px;
-        accent-color: #007cba;
+        width: 13px;
+        height: 13px;
+        accent-color: red;
       }
 
       .ck-field {
@@ -404,9 +407,9 @@
       .ck-field label {
         display: block;
         font-weight: 600;
-        font-size: 14px;
+        font-size: 13px;
         margin-bottom: 6px;
-        color: #333;
+        color: #404040;
       }
       .ck-field .req {
         color: #e11d48;
@@ -425,17 +428,33 @@
         border-color: #007cba;
         box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.12);
       }
+      .ck-emsg {
+  display: none;
+  color: #e11d48;
+  font-size: 11.5px;
+  margin-top: 5px;
+  font-weight: 600;
+}
+.ck-input.invalid {
+  border-color: #e11d48;
+}
+.ck-input.invalid + .ck-emsg,
+.ck-emsg.show {
+  display: block;
+}
 
       .ck-order-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 14px;
+        font-size: 13px;
+        color: #404040;
       }
       .ck-order-table th,
       .ck-order-table td {
         padding: 10px 6px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1.8px dotted #d4d2d2;;
         text-align: left;
+      
       }
       .ck-order-table td.num,
       .ck-order-table th.num {
@@ -445,8 +464,57 @@
       .ck-order-table tfoot tr:last-child th {
         border-bottom: none;
         font-size: 17px;
-        font-weight: 800;
+        font-weight: 700;
         padding-top: 14px;
+      }
+
+      
+
+      /* ---- order-summary row with thumbnail + remove button ---- */
+      .ck-order-table .ck-row-flex {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .ck-order-table .ck-remove-item {
+        flex: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 1px solid #ccc;
+        color: #888;
+        font-size: 12px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background: #fff;
+        transition: 0.2s;
+      }
+      .ck-order-table .ck-remove-item:hover {
+        border-color: #e11d48;
+        color: #e11d48;
+        background: #fff6f6;
+      }
+      .ck-order-table .ck-item-thumb {
+        flex: none;
+        width: 46px;
+        height: 46px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #eee;
+        background: #fff;
+      }
+      .ck-order-table .ck-item-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .ck-order-table .ck-item-name {
+        font-weight: 600;
+        font-size: 12px;
+        color: #404040;
       }
 
       .ck-place-order {
@@ -2097,17 +2165,25 @@
                   />
                 </div>
                 <div class="ck-field">
-                  <label for="billing_phone"
-                    >আপনার ফোন নাম্বারটি লিখুন <span class="req">*</span></label
-                  >
-                  <input
-                    type="tel"
-                    id="billing_phone"
-                    name="phone"
-                    class="ck-input"
-                    required
-                  />
-                </div>
+  <label for="billing_phone"
+    >আপনার ফোন নাম্বারটি লিখুন <span class="req">*</span></label
+  >
+  <input
+    type="tel"
+    id="billing_phone"
+    name="phone"
+    class="ck-input"
+    placeholder="01XXXXXXXXX"
+    autocomplete="tel"
+    pattern="^01[3-9]\d{8}$"
+    title="আপনার ১১ সংখ্যার সঠিক ফোন নাম্বারটি প্রয়োজন।"
+    oninput="validatePhone(this)"
+    required
+  />
+  <div class="ck-emsg" id="phone-error">
+    আপনার সঠিক ১১ সংখ্যার ফোন নাম্বারটি প্রয়োজন (01XXXXXXXXX)।
+  </div>
+</div>
                 <div class="ck-field">
                   <label for="billing_address_1"
                     >আপনার সম্পূর্ণ এড্রেস টি লিখুন
@@ -2546,6 +2622,17 @@
         renderOrderSummary();
       }
 
+      /* remove item form the order table*/
+        
+      function removeCartItem(id) {
+        const p = PRODUCTS.find((x) => x.id === id);
+        if (p) {
+          p.checked = false;
+          renderProducts();
+          renderOrderSummary();
+        }
+      }
+
       function renderOrderSummary() {
         const itemsEl = document.getElementById("ck-order-items");
         const placeBtn = document.getElementById("ck-place-order-btn");
@@ -2555,7 +2642,13 @@
             .map(
               (p) => `
       <tr>
-        <td>${p.name} &nbsp;<strong>&times; ${p.qty}</strong></td>
+        <td>
+          <div class="ck-row-flex">
+            <span class="ck-remove-item" onclick="removeCartItem('${p.id}')" title="মুছে ফেলুন">&times;</span>
+            <span class="ck-item-thumb"><img src="${p.img}" alt="${p.name}"></span>
+            <span class="ck-item-name">${p.name} <strong>&times; ${p.qty}</strong></span>
+          </div>
+        </td>
         <td class="num">${fmt(p.price * p.qty)}</td>
       </tr>
     `,
@@ -2706,6 +2799,20 @@
         initLocationToggle();
         renderOrderSummary();
       });
+      function validatePhone(input) {
+  const errEl = document.getElementById("phone-error");
+  const valid = /^01[3-9]\d{8}$/.test(input.value);
+  if (input.value.length === 0) {
+    input.classList.remove("invalid");
+    errEl.classList.remove("show");
+  } else if (!valid) {
+    input.classList.add("invalid");
+    errEl.classList.add("show");
+  } else {
+    input.classList.remove("invalid");
+    errEl.classList.remove("show");
+  }
+}
     </script>
   </body>
 </html>
